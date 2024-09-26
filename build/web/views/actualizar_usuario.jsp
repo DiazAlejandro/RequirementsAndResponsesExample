@@ -5,7 +5,7 @@ Author     : ALEJANDRO DIAZ
 --%>
 
 <%@page import="java.sql.Time"%>
-<%@page import="java.util.Date"%>
+<%@page import="java.sql.Date"%>
 <%@page import="configuration.ConnectionBD"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%> 
 
@@ -69,19 +69,19 @@ Author     : ALEJANDRO DIAZ
         <!-- Formulario con los datos del usuario para actualizar --> 
         <form id="formActualizarUsuario"> 
             APELLIDO: <br>
-            <input type="text" id="txt_apellidos" value="<%= apellidos%>" ><br>
+            <input type="text" id="txt_apellidos" name="txt_apellidos" value="<%= apellidos%>" ><br>
             NOMBRE: <br>
-            <input type="text" id="txt_nombre" value="<%= nombre%>" ><br>
+            <input type="text" id="txt_nombre" name="txt_apellidos" value="<%= nombre%>" ><br>
             CELULAR: <br>
-            <input type="tel" id="txt_celular" value="<%= celular%>" ><br>
+            <input type="tel" id="txt_celular" name="txt_apellidos" value="<%= celular%>" ><br>
             CORREO: <br>
-            <input type="text" id="txt_correo" value="<%= correo%>" ><br>
+            <input type="text" id="txt_correo" name="txt_apellidos" value="<%= correo%>" ><br>
             FECHA_NACIMIENTO: <br>
-            <input type="date" id="txt_fecha_nac" value="<%= fecha_nac%>" ><br>
+            <input type="date" id="txt_fecha_nac" name="txt_apellidos" value="<%= fecha_nac%>" ><br>
             MATRICULA: <br>
-            <input type="text" id="txt_matricula" value="<%= matricula%>" readonly><br> 
+            <input type="text" id="txt_matricula" name="txt_apellidos" value="<%= matricula%>" readonly><br> 
             HORA: <br>
-            <input type="time" id="txt_hora" value="<%= hora%>" ><br>
+            <input type="time" id="txt_hora" name="txt_apellidos" value="<%= hora%>" ><br>
             <input type="button" value="Actualizar" onclick="actualizarUsuario()"> 
         </form> 
         <div id="resultado"></div> 
@@ -95,14 +95,17 @@ Author     : ALEJANDRO DIAZ
                 const matricula = document.getElementById("txt_matricula").value;
                 const hora = document.getElementById("txt_hora").value;
                 
+                
+                console.log("Fecha: "+fecha_nac);
                 const datos = new URLSearchParams();
                 datos.append("apellidos", apellidos);
                 datos.append("nombre", nombre);
                 datos.append("celular", celular);
                 datos.append("fecha_nac", fecha_nac);
+                datos.append("correo", correo);
                 datos.append("matricula", matricula);
                 datos.append("hora", hora);
-                console.log(datos );
+                console.log(datos);
                 var urlParams = new URLSearchParams(window.location.search);
                 var matricula22 = urlParams.get("matricula");
                 console.log("MATRICULA  " + matricula22);
@@ -110,7 +113,7 @@ Author     : ALEJANDRO DIAZ
                     method: "PUT",
                     body: datos,
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=utf8'
                     }
                 })
                         .then(response => response.text())

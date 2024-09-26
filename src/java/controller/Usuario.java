@@ -5,8 +5,11 @@
 package controller;
 
 import configuration.ConnectionBD;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -247,6 +250,32 @@ public class Usuario extends HttpServlet {
             response.getWriter().write("Matricula not found in URL");
             return;
         }
+        // Leer el body de la solicitud PUT
+        StringBuilder sb = new StringBuilder();
+        String line;
+        try ( BufferedReader reader = request.getReader()) {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        // Obtener los datos en formato URL-encoded (x-www-form-urlencoded)
+        String body = sb.toString();
+        // Si el cuerpo es de tipo application/x-www-form-urlencoded, los parámetros estarán en el formato clave=valor
+        // Se puede usar un parseador para dividirlo
+        String[] params = body.split("&");
+        String[] values = new String[7];
+        int i = 0;
+        for (String param : params) {
+            String[] keyValue = param.split("=");
+            String key = keyValue[0];  // Nombre del parámetro
+            String value = keyValue.length > 1 ? keyValue[1] : "";  // Valor del parámetro
+            // Aquí puedes procesar los parámetros según tu lógica
+            values[i] = value;
+            i++;
+            System.out.println("Key: " + key + ", Value: " + value);
+            response.getWriter().write("Key: " + key + " -> Value: " + value + "\n");
+        }
+
         System.out.println("Query String: " + request.getQueryString());
         System.out.println("MMMMMM: " + matricula);
         // Obtener los parámetros del formulario 
@@ -256,31 +285,41 @@ public class Usuario extends HttpServlet {
         String celular = request.getParameter("txt_celular");
         String fecha = request.getParameter("txt_fecha_nac");
         String hora = request.getParameter("txt_hora");
-        
-        Date fechaFinal = Date.valueOf(fecha);
-        Time horaFinal = Time.valueOf(hora);
-        String sql2 = "UPDATE usuario SET apellidos = '"+apellidos+
-                "', celular = '"+celular+
-                "', fecha_nac = '"+fechaFinal+
-                "', nombre = '"+nombre+
-                "', hora = '"+hora+
-                "', correo = '"+correo+
-                "' WHERE matricula like '"+matricula+"'";
-        System.out.println("SQL "+ sql2);
-        try {
-                        conn = conexion.getConnectionBD();
 
-            // Crear la consulta SQL para insertar el usuario 
-            String sql = "UPDATE usuario SET apellidos = ? , celular = ?, fecha_nac = ?,"
-                    + "nombre = ?, hora = ?, correo = ? WHERE matricula LIKE ?";
-            ps.setString(1, apellidos);
-            ps.setString(2, celular);
-            ps.setDate(3, fechaFinal);
-            ps.setString(4, nombre);
-            ps.setTime(5, horaFinal);
-            ps.setString(6, correo);
-            
+        System.out.println("Fecha: ***" + fecha);
+        
+        //String value = URLDecoder.decode(valor, "UTF-8");
+        String sql2 = "UPDATE usuario SET apellidos = '" + values[0]
+                + "', nombre = '" + values[1]
+                + "', celular = '" + values[2]
+                + "', fecha_nac = '" + values[3]
+                + "', correo = '" + URLDecoder.decode(values[4], "UTF-8")
+                + "', hora = '" + URLDecoder.decode(values[6], "UTF-8")
+                + "' WHERE matricula like '" + matricula + "'";
+        System.out.println("SQL ****" + sql2);
+        response.getWriter().write("SQL:**** " + sql2);
+        try {
+            conn = conexion.getConnectionBD();
+            ps = conn.prepareStatement(sql2);
+
+            ps.executeUpdate();
+            /**
+             * Crear la consulta SQL para insertar el usuario String sql =
+             * "UPDATE usuario SET apellidos = ? , celular = ?, fecha_nac = ?,"
+             * + "nombre = ?, hora = ?, correo = ? WHERE matricula LIKE ?";
+             * ps.setString(1, apellidos); ps.setString(2, celular);
+             * ps.setDate(3, fechaFinal); ps.setString(4, nombre); ps.setTime(5,
+             * horaFinal); ps.setString(6, correo);
+             */
             // Ejecutar la consulta 
+            /**String sql = "UPDATE usuario SET apellidos = ? , celular = ?, fecha_nac = ?,"
+                    + "nombre = ?, hora = ?, correo = ? WHERE matricula LIKE ?";
+            ps.setString(1, values[0]);
+            ps.setString(2, values[2]);
+            ps.setDate(3, Date.valueOf(values[3]));
+            ps.setString(4, values[0]);
+            ps.setTime(5, Time.valueOf(values[6]));
+            ps.setString(6, values[4]);**/
             int filasActualizadas = ps.executeUpdate();
 
             // Enviar respuesta de éxito 
@@ -292,7 +331,7 @@ public class Usuario extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            response.getWriter().write("Error al actualizar el usuario.");
+            response.getWriter().write("Error al actualizar el usuario." + e + "\n" + sql2);
         } finally {
             try {
                 if (statement != null) {
